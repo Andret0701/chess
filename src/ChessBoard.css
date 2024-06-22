@@ -11,13 +11,19 @@
 
     /* Make it hoverable thorgh other objects */
     position: relative;    
+    border-radius: 5px;
+    overflow: hidden;
 }
+
 
 
 
 .Square {
     width: 12.5%;
     height: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
 }
 
 .Light {

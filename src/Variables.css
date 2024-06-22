@@ -1,0 +1,9 @@
+/* variables.css */
+:root {
+    --light-color: #ebecd2;
+    --dark-color: #6f9457;
+    --light-moved-color: #f5f591;
+    --dark-moved-color: #b7c953;
+    --light-selected-color: #f8f8ef;
+    --dark-selected-color: #cddac4;
+}

@@ -20,12 +20,20 @@ const pieceToImage = (piece: Piece) => {
     : "";
 };
 
-interface PieceProps {
+export interface PieceData {
+  id: string;
   color: PieceColor;
   type: PieceType;
+  isAlive: boolean;
+  isDragging: boolean;
+  x: number;
+  y: number;
+}
+
+interface PieceProps {
+  piece: PieceData;
   tileRef: React.RefObject<HTMLDivElement>;
-  onGrabStart?: () => void;
-  onGrabEnd?: () => void;
+  onGrabStart?: (x: number, y: number) => void;
 }
 
 interface SizePosition {
@@ -35,10 +43,9 @@ interface SizePosition {
   left: number;
 }
 
-const ChessPiece: React.FC<PieceProps> = ({ color, type, tileRef }) => {
+const ChessPiece: React.FC<PieceProps> = ({ piece, tileRef, onGrabStart }) => {
   const [isHovering, setHovering] = useState(false);
   const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
-  const [mouseDown, setMouseDown] = useState(false);
   const [sizePosition, setSizePosition] = useState<SizePosition>();
 
   const handleResize = useCallback(() => {
@@ -52,9 +59,11 @@ const ChessPiece: React.FC<PieceProps> = ({ color, type, tileRef }) => {
   useEffect(() => {
     handleResize();
     window.addEventListener("resize", handleResize);
+    window.addEventListener("mousemove", handleMouseMove);
 
     return () => {
       window.removeEventListener("resize", handleResize);
+      window.removeEventListener("mousemove", handleMouseMove);
     };
   }, [handleResize]);
 
@@ -66,17 +75,9 @@ const ChessPiece: React.FC<PieceProps> = ({ color, type, tileRef }) => {
   );
 
   const startDrag = (e: React.MouseEvent) => {
-    if (!mouseDown) {
-      setMouseDown(true);
-      window.addEventListener("mousemove", handleMouseMove);
-      handleMouseMove(e.nativeEvent as MouseEvent);
-    }
-  };
-
-  const endDrag = () => {
-    if (mouseDown) {
-      setMouseDown(false);
-      window.removeEventListener("mousemove", handleMouseMove);
+    if (onGrabStart && piece.isAlive && !piece.isDragging) {
+      piece.isDragging = true;
+      onGrabStart(piece.x, piece.y);
     }
   };
 
@@ -87,40 +88,45 @@ const ChessPiece: React.FC<PieceProps> = ({ color, type, tileRef }) => {
       style={{
         width: sizePosition.width,
         height: sizePosition.height,
-        left: mouseDown
+        left: piece.isDragging
           ? mousePosition.x - sizePosition.width / 2
           : sizePosition.left,
-        top: mouseDown
+        top: piece.isDragging
           ? mousePosition.y - sizePosition.height / 2
           : sizePosition.top,
         userSelect: "none",
-        zIndex: isHovering && mouseDown ? 100 : 0,
+        zIndex: isHovering && piece.isDragging ? 3 : 2,
         position: "absolute",
-        transition: mouseDown ? "none" : "all 0.3s"
+        transition: piece.isDragging ? "none" : "all 0.3s",
+        //make it not hitting mouse if not alive
+        pointerEvents: "none"
       }}
     >
       <Image
         style={{
           width: "100%",
           height: "100%",
-          transition: "transform 0.06s",
+          transition: piece.isAlive ? "all 0.06s" : "all 0.6s",
           transformOrigin: "center",
           cursor: isHovering ? "grab" : "pointer",
           userSelect: "none",
-          transform: isHovering
-            ? mouseDown
+          opacity: piece.isAlive ? 1 : 0,
+          transform: !piece.isAlive
+            ? "scale(0) rotate(40deg)"
+            : isHovering
+            ? piece.isDragging
               ? "scale(1.1) rotate(-4deg)"
               : "scale(1.05) rotate(1deg)"
             : "scale(1) rotate(0deg)",
-          zIndex: isHovering && mouseDown ? 100 : 0
+          zIndex: isHovering && piece.isDragging ? 3 : 2,
+          pointerEvents: piece.isAlive && !piece.isDragging ? "auto" : "none"
         }}
-        src={pieceToImage({ color, type })}
-        alt={`${color} ${type}`}
+        src={pieceToImage({ color: piece.color, type: piece.type })}
+        alt={`${piece.color} ${piece.type}`}
         draggable={false}
-        onMouseEnter={() => !mouseDown && setHovering(true)}
-        onMouseLeave={() => !mouseDown && setHovering(false)}
+        onMouseEnter={() => !piece.isDragging && setHovering(true)}
+        onMouseLeave={() => !piece.isDragging && setHovering(false)}
         onMouseDown={startDrag}
-        onMouseUp={endDrag}
       />
     </div>
   );
