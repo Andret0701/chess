@@ -1,0 +1,14 @@
+
+.ChessPiece {
+    width: 100%;
+    height: 100%;
+    transition: all 0.1s;
+}
+
+.ChessPiece:hover {
+    cursor: grab;
+    transform: rotate(3deg);
+    scale: 1.1;
+
+}
+

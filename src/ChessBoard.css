@@ -1,0 +1,33 @@
+.ChessBoard {
+    width: 80vh;
+    height: 80vh;
+    max-width: 90vh;
+    max-height: 80vh;
+    min-width: 80vh;
+    min-height: 80vh;
+    display: flex;
+    flex-direction: column;
+    box-shadow: 0 0 30px rgba(0, 0, 0, 0.7);
+
+    /* Make it hoverable thorgh other objects */
+    position: relative;    
+}
+
+
+
+.Square {
+    width: 12.5%;
+    height: 100%;
+}
+
+.Light {
+    background-color: #ebecd2;
+}
+
+.Dark {
+    background-color: #6f9457;
+}
+
+.Dark {
+    background-color: #6f9457;
+}
