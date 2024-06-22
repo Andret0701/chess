@@ -26,6 +26,9 @@ const ChessBoard: React.FC<ChessBoardProps> = (props) => {
   };
 
   const onGrabEnd = (x: number, y: number) => {
+    pieces.forEach((p) => {
+      p.isDragging = false;
+    });
     if (draggingPosition === null || hoveringPosition === null) return;
     if (x !== hoveringPosition[0] || y !== hoveringPosition[1]) {
       setDraggingPosition(null);
@@ -33,9 +36,6 @@ const ChessBoard: React.FC<ChessBoardProps> = (props) => {
       return;
     }
 
-    pieces.forEach((p) => {
-      p.isDragging = false;
-    });
     setPieces([...pieces]);
 
     movePiece(draggingPosition, hoveringPosition);
@@ -97,9 +97,14 @@ const ChessBoard: React.FC<ChessBoardProps> = (props) => {
 
     const piece = getPieceAtPosition(from);
     if (!piece) return;
+
+    let captured = false;
+
     pieces.forEach((p) => {
       if (p.x === to[0] && p.y === to[1]) {
+        if (!p.isAlive) return;
         p.isAlive = false;
+        captured = true;
       } else if (p.x === from[0] && p.y === from[1]) {
         p.x = to[0];
         p.y = to[1];
@@ -107,13 +112,21 @@ const ChessBoard: React.FC<ChessBoardProps> = (props) => {
     });
 
     //play the move sound
-    const audio = new Audio("assets/move.wav");
+    let path = "assets/move.wav";
+    if (captured) path = "assets/capture.wav";
+    const audio = new Audio(path);
     audio.play();
 
     setMovedFrom(from);
     setMovedTo(to);
     setPieces([...pieces]);
   };
+
+  useEffect(() => {
+    document.addEventListener("mouseup", () => {
+      onGrabEnd(0, 0);
+    });
+  });
 
   const positionsEqual = (
     pos1: [number, number] | null,

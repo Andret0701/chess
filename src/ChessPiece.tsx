@@ -95,7 +95,7 @@ const ChessPiece: React.FC<PieceProps> = ({ piece, tileRef, onGrabStart }) => {
           ? mousePosition.y - sizePosition.height / 2
           : sizePosition.top,
         userSelect: "none",
-        zIndex: isHovering && piece.isDragging ? 3 : 2,
+        zIndex: piece.isAlive ? (isHovering && piece.isDragging ? 3 : 2) : 1,
         position: "absolute",
         transition: piece.isDragging ? "none" : "all 0.3s",
         //make it not hitting mouse if not alive
@@ -118,7 +118,7 @@ const ChessPiece: React.FC<PieceProps> = ({ piece, tileRef, onGrabStart }) => {
               ? "scale(1.1) rotate(-4deg)"
               : "scale(1.05) rotate(1deg)"
             : "scale(1) rotate(0deg)",
-          zIndex: isHovering && piece.isDragging ? 3 : 2,
+          zIndex: piece.isAlive ? (isHovering && piece.isDragging ? 3 : 2) : 1,
           pointerEvents: piece.isAlive && !piece.isDragging ? "auto" : "none"
         }}
         src={pieceToImage({ color: piece.color, type: piece.type })}
