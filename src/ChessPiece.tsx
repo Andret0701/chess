@@ -47,13 +47,16 @@ const ChessPiece: React.FC<PieceProps> = ({ piece, tileRef, onGrabStart }) => {
   const [isHovering, setHovering] = useState(false);
   const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
   const [sizePosition, setSizePosition] = useState<SizePosition>();
+  const [isResizing, setIsResizing] = useState(false);
 
   const handleResize = useCallback(() => {
+    setIsResizing(true);
     if (tileRef.current) {
       const { width, height, top, left } =
         tileRef.current.getBoundingClientRect();
       setSizePosition({ width, height, top, left });
     }
+    setTimeout(() => setIsResizing(false), 100); // Set resizing back to false after a delay
   }, [tileRef]);
 
   useEffect(() => {
@@ -68,13 +71,13 @@ const ChessPiece: React.FC<PieceProps> = ({ piece, tileRef, onGrabStart }) => {
   }, [handleResize]);
 
   const handleMouseMove = useCallback(
-    throttle((e: MouseEvent) => {
+    throttle((e) => {
       setMousePosition({ x: e.clientX, y: e.clientY });
     }, 16), // Adjust the throttle rate as needed
     []
   );
 
-  const startDrag = (e: React.MouseEvent) => {
+  const startDrag = () => {
     if (onGrabStart && piece.isAlive && !piece.isDragging) {
       piece.isDragging = true;
       onGrabStart(piece.x, piece.y);
@@ -97,7 +100,7 @@ const ChessPiece: React.FC<PieceProps> = ({ piece, tileRef, onGrabStart }) => {
         userSelect: "none",
         zIndex: piece.isAlive ? (isHovering && piece.isDragging ? 3 : 2) : 1,
         position: "absolute",
-        transition: piece.isDragging ? "none" : "all 0.3s",
+        transition: piece.isDragging || isResizing ? "none" : "all 0.3s",
         //make it not hitting mouse if not alive
         pointerEvents: "none"
       }}
