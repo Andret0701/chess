@@ -1,5 +1,5 @@
 import React, { useEffect, useState, createRef, Fragment } from "react";
-import { FEN_STARTING_POSITION, fenToBoard } from "./ChessUtils";
+import { FEN_STARTING_POSITION, PieceColor, fenToBoard } from "./ChessUtils";
 import "./ChessBoard.css";
 import { PieceType } from "./ChessUtils";
 import ChessPiece from "./ChessPiece";
@@ -17,6 +17,8 @@ const ChessBoard: React.FC<ChessBoardProps> = (props) => {
     [number, number] | null
   >(null);
 
+  const [turn, setTurn] = useState<PieceColor>(PieceColor.White);
+
   const [movedFrom, setMovedFrom] = useState<[number, number] | null>(null);
   const [movedTo, setMovedTo] = useState<[number, number] | null>(null);
 
@@ -29,13 +31,17 @@ const ChessBoard: React.FC<ChessBoardProps> = (props) => {
     pieces.forEach((p) => {
       p.isDragging = false;
     });
-    if (draggingPosition === null || hoveringPosition === null) return;
+
+    if (draggingPosition === null || hoveringPosition === null) {
+      setDraggingPosition(null);
+      setHoveringPosition(null);
+      return;
+    }
     if (x !== hoveringPosition[0] || y !== hoveringPosition[1]) {
       setDraggingPosition(null);
       setHoveringPosition(null);
       return;
     }
-
     setPieces([...pieces]);
 
     movePiece(draggingPosition, hoveringPosition);
@@ -54,7 +60,8 @@ const ChessBoard: React.FC<ChessBoardProps> = (props) => {
             isAlive: true,
             isDragging: false,
             x: rowIndex,
-            y: colIndex
+            y: colIndex,
+            canMove: piece.color === turn
           };
         })
       )
@@ -101,6 +108,7 @@ const ChessBoard: React.FC<ChessBoardProps> = (props) => {
     let captured = false;
 
     pieces.forEach((p) => {
+      p.canMove = turn !== p.color;
       if (p.x === to[0] && p.y === to[1]) {
         if (!p.isAlive) return;
         p.isAlive = false;
@@ -111,6 +119,10 @@ const ChessBoard: React.FC<ChessBoardProps> = (props) => {
       }
     });
 
+    turn === PieceColor.White
+      ? setTurn(PieceColor.Black)
+      : setTurn(PieceColor.White);
+
     //play the move sound
     let path = "assets/move.wav";
     if (captured) path = "assets/capture.wav";
@@ -119,6 +131,7 @@ const ChessBoard: React.FC<ChessBoardProps> = (props) => {
 
     setMovedFrom(from);
     setMovedTo(to);
+
     setPieces([...pieces]);
   };
 

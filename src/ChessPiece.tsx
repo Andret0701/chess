@@ -28,6 +28,7 @@ export interface PieceData {
   isDragging: boolean;
   x: number;
   y: number;
+  canMove: boolean;
 }
 
 interface PieceProps {
@@ -50,13 +51,22 @@ const ChessPiece: React.FC<PieceProps> = ({ piece, tileRef, onGrabStart }) => {
   const [isResizing, setIsResizing] = useState(false);
 
   const handleResize = useCallback(() => {
-    setIsResizing(true);
     if (tileRef.current) {
       const { width, height, top, left } =
         tileRef.current.getBoundingClientRect();
+      if (
+        sizePosition != null &&
+        sizePosition.width === width &&
+        sizePosition.height === height &&
+        sizePosition.top === top &&
+        sizePosition.left === left
+      )
+        return;
+
+      setIsResizing(true);
       setSizePosition({ width, height, top, left });
+      setTimeout(() => setIsResizing(false), 100); // Set resizing back to false after a delay
     }
-    setTimeout(() => setIsResizing(false), 100); // Set resizing back to false after a delay
   }, [tileRef]);
 
   useEffect(() => {
@@ -78,6 +88,8 @@ const ChessPiece: React.FC<PieceProps> = ({ piece, tileRef, onGrabStart }) => {
   );
 
   const startDrag = () => {
+    if (!piece.canMove) return;
+
     if (onGrabStart && piece.isAlive && !piece.isDragging) {
       piece.isDragging = true;
       onGrabStart(piece.x, piece.y);
@@ -100,7 +112,11 @@ const ChessPiece: React.FC<PieceProps> = ({ piece, tileRef, onGrabStart }) => {
         userSelect: "none",
         zIndex: piece.isAlive ? (isHovering && piece.isDragging ? 3 : 2) : 1,
         position: "absolute",
-        transition: piece.isDragging || isResizing ? "none" : "all 0.3s",
+        transition: isResizing
+          ? "none"
+          : piece.isDragging
+          ? "all 0.05s"
+          : "all 0.3s",
         //make it not hitting mouse if not alive
         pointerEvents: "none"
       }}
@@ -111,7 +127,7 @@ const ChessPiece: React.FC<PieceProps> = ({ piece, tileRef, onGrabStart }) => {
           height: "100%",
           transition: piece.isAlive ? "all 0.06s" : "all 0.6s",
           transformOrigin: "center",
-          cursor: isHovering ? "grab" : "pointer",
+          cursor: isHovering && piece.canMove ? "grab" : "default",
           userSelect: "none",
           opacity: piece.isAlive ? 1 : 0,
           transform: !piece.isAlive
@@ -127,8 +143,12 @@ const ChessPiece: React.FC<PieceProps> = ({ piece, tileRef, onGrabStart }) => {
         src={pieceToImage({ color: piece.color, type: piece.type })}
         alt={`${piece.color} ${piece.type}`}
         draggable={false}
-        onMouseEnter={() => !piece.isDragging && setHovering(true)}
-        onMouseLeave={() => !piece.isDragging && setHovering(false)}
+        onMouseEnter={() =>
+          !piece.isDragging && piece.canMove && setHovering(true)
+        }
+        onMouseLeave={() =>
+          !piece.isDragging && piece.canMove && setHovering(false)
+        }
         onMouseDown={startDrag}
       />
     </div>
