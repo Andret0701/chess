@@ -70,7 +70,7 @@ const ChessPiece: React.FC<PieceProps> = ({
   const [position, setPosition] = useState({ x: 0, y: 0 });
   const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
   const [mouseDown, setMouseDown] = useState(false);
-  const [sizePosition, setSizePosition] = useState<SizePosition | null>(null);
+  const [sizePosition, setSizePosition] = useState<SizePosition>();
 
   const handleResize = () => {
     if (tileRef.current) {
@@ -78,7 +78,6 @@ const ChessPiece: React.FC<PieceProps> = ({
         tileRef.current.getBoundingClientRect();
       setSizePosition({ width, height, top, left });
     }
-    console.log("sizePosition", sizePosition);
   };
 
   useEffect(() => {
@@ -94,25 +93,6 @@ const ChessPiece: React.FC<PieceProps> = ({
     handleResize();
   }, [tileRef]);
 
-  const handleDrag = (e: DraggableEvent, data: DraggableData) => {
-    setPosition({ x: data.x, y: data.y });
-  };
-
-  const handleDragStart = (e: DraggableEvent, data: DraggableData) => {
-    // Make the piece snap to the cursor on drag start if necessary
-    const dif = { x: data.x - mousePosition.x, y: data.y - mousePosition.y };
-
-    setPosition({ x: position.x + dif.x, y: position.y + dif.y });
-    setMouseDown(true);
-  };
-
-  const handleDragEnd = () => {
-    // Optional: You can add snapping logic here if necessary
-    console.log("Piece dropped at:", position);
-    setMouseDown(false);
-    //    setPosition({ x: mousePosition.x, y: mousePosition.y });
-  };
-
   const handleMouseMove = (e: MouseEvent) => {
     setMousePosition({ x: e.clientX, y: e.clientY });
   };
@@ -127,24 +107,20 @@ const ChessPiece: React.FC<PieceProps> = ({
   if (!sizePosition) return null;
 
   return (
-    // <Draggable
-    //   position={position}
-    //   onDrag={handleDrag}
-    //   onStart={handleDragStart}
-    //   onStop={handleDragEnd}
-    //   //set style not to be selected
-    //   // Add any necessary props for snapping behavior
-    // >
     <div
       style={{
         width: sizePosition.width,
         height: sizePosition.height,
-        top: sizePosition.top,
-        left: sizePosition.left,
+        left: mouseDown
+          ? mousePosition.x - sizePosition.width / 2
+          : sizePosition.left,
+        top: mouseDown
+          ? mousePosition.y - sizePosition.height / 2
+          : sizePosition.top,
         userSelect: "none",
         zIndex: isHovering && mouseDown ? 100 : 0,
         position: "absolute",
-        transition: "all 0.3s"
+        transition: "all 0.06s"
       }}
     >
       <Image
@@ -171,9 +147,14 @@ const ChessPiece: React.FC<PieceProps> = ({
         onMouseLeave={() => {
           if (!mouseDown) setHovering(false);
         }}
+        onMouseDown={() => {
+          setMouseDown(true);
+        }}
+        onMouseUp={() => {
+          setMouseDown(false);
+        }}
       />
     </div>
-    // </Draggable>
   );
 };
 

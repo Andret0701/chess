@@ -19,8 +19,18 @@ const ChessBoard: React.FC<ChessBoardProps> = (props) => {
   useEffect(() => {
     // Initialize tileRefs with createRef for each board cell
     const refs = board.map((row) => row.map(() => createRef<HTMLDivElement>()));
+    if (refs.length === 0) return;
+    if (tileRefs.length === 0) {
+      setTileRefs(refs);
+      return;
+    }
+    for (let i = 0; i < refs.length; i++) {
+      for (let j = 0; j < refs[i].length; j++) {
+        if (tileRefs[i][j] !== refs[i][j]) return;
+      }
+    }
     setTileRefs(refs);
-  }, []);
+  }, [board]);
 
   if (tileRefs.length === 0) return null; // Ensure tileRefs is initialized before rendering
 
@@ -44,7 +54,7 @@ const ChessBoard: React.FC<ChessBoardProps> = (props) => {
                   )
                     return;
                   setHoveringPosition([rowIndex, colIndex]);
-                  console.log("hoveringPosition", hoveringPosition, number);
+                  //console.log("hoveringPosition", hoveringPosition, number);
                   setNumber(number + 1);
                 }}
               ></div>
