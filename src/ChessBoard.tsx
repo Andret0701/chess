@@ -8,6 +8,7 @@ interface ChessBoardProps {}
 
 const ChessBoard: React.FC<ChessBoardProps> = (props) => {
   const board = fenToBoard(FEN_STARTING_POSITION);
+
   const [tileRefs, setTileRefs] = useState<React.RefObject<HTMLDivElement>[][]>(
     []
   );
@@ -17,7 +18,6 @@ const ChessBoard: React.FC<ChessBoardProps> = (props) => {
   >(null);
 
   useEffect(() => {
-    // Initialize tileRefs with createRef for each board cell
     const refs = board.map((row) => row.map(() => createRef<HTMLDivElement>()));
     if (refs.length === 0) return;
     if (tileRefs.length === 0) {

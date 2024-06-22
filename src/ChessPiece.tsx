@@ -1,57 +1,31 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useCallback } from "react";
 import { Piece, PieceColor, PieceType } from "./ChessUtils"; // Adjust path if necessary
-import Draggable, { DraggableData, DraggableEvent } from "react-draggable";
 import { Image } from "react-bootstrap";
+import { throttle } from "lodash";
 
 const pieceToImage = (piece: Piece) => {
-  let path = "./assets/";
+  const basePath = "./assets/";
+  const colorPrefix = piece.color === PieceColor.Black ? "b" : "w";
+  const typeMap = {
+    [PieceType.Pawn]: "p",
+    [PieceType.Rook]: "r",
+    [PieceType.Knight]: "n",
+    [PieceType.Bishop]: "b",
+    [PieceType.Queen]: "q",
+    [PieceType.King]: "k"
+  };
 
-  switch (piece.color) {
-    case PieceColor.Black:
-      path += "b";
-      break;
-    case PieceColor.White:
-      path += "w";
-      break;
-    default:
-      break;
-  }
-
-  switch (piece.type) {
-    case PieceType.Pawn:
-      path += "p";
-      break;
-    case PieceType.Rook:
-      path += "r";
-      break;
-    case PieceType.Knight:
-      path += "n";
-      break;
-    case PieceType.Bishop:
-      path += "b";
-      break;
-    case PieceType.Queen:
-      path += "q";
-      break;
-    case PieceType.King:
-      path += "k";
-      break;
-    case PieceType.Empty:
-      path = ""; // Handle empty piece type if needed
-      break;
-    default:
-      break;
-  }
-
-  path += ".png";
-
-  return path; // Return the constructed path based on piece's color and type
+  return piece.type !== PieceType.Empty
+    ? `${basePath}${colorPrefix}${typeMap[piece.type]}.png`
+    : "";
 };
 
 interface PieceProps {
   color: PieceColor;
   type: PieceType;
   tileRef: React.RefObject<HTMLDivElement>;
+  onGrabStart?: () => void;
+  onGrabEnd?: () => void;
 }
 
 interface SizePosition {
@@ -61,24 +35,19 @@ interface SizePosition {
   left: number;
 }
 
-const ChessPiece: React.FC<PieceProps> = ({
-  color,
-  type,
-  tileRef
-}: PieceProps) => {
+const ChessPiece: React.FC<PieceProps> = ({ color, type, tileRef }) => {
   const [isHovering, setHovering] = useState(false);
-  const [position, setPosition] = useState({ x: 0, y: 0 });
   const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
   const [mouseDown, setMouseDown] = useState(false);
   const [sizePosition, setSizePosition] = useState<SizePosition>();
 
-  const handleResize = () => {
+  const handleResize = useCallback(() => {
     if (tileRef.current) {
       const { width, height, top, left } =
         tileRef.current.getBoundingClientRect();
       setSizePosition({ width, height, top, left });
     }
-  };
+  }, [tileRef]);
 
   useEffect(() => {
     handleResize();
@@ -87,22 +56,29 @@ const ChessPiece: React.FC<PieceProps> = ({
     return () => {
       window.removeEventListener("resize", handleResize);
     };
-  }, []);
+  }, [handleResize]);
 
-  useEffect(() => {
-    handleResize();
-  }, [tileRef]);
+  const handleMouseMove = useCallback(
+    throttle((e: MouseEvent) => {
+      setMousePosition({ x: e.clientX, y: e.clientY });
+    }, 16), // Adjust the throttle rate as needed
+    []
+  );
 
-  const handleMouseMove = (e: MouseEvent) => {
-    setMousePosition({ x: e.clientX, y: e.clientY });
+  const startDrag = (e: React.MouseEvent) => {
+    if (!mouseDown) {
+      setMouseDown(true);
+      window.addEventListener("mousemove", handleMouseMove);
+      handleMouseMove(e.nativeEvent as MouseEvent);
+    }
   };
 
-  useEffect(() => {
-    document.addEventListener("mousemove", handleMouseMove);
-    return () => {
-      document.removeEventListener("mousemove", handleMouseMove);
-    };
-  }, []);
+  const endDrag = () => {
+    if (mouseDown) {
+      setMouseDown(false);
+      window.removeEventListener("mousemove", handleMouseMove);
+    }
+  };
 
   if (!sizePosition) return null;
 
@@ -120,7 +96,7 @@ const ChessPiece: React.FC<PieceProps> = ({
         userSelect: "none",
         zIndex: isHovering && mouseDown ? 100 : 0,
         position: "absolute",
-        transition: "all 0.06s"
+        transition: mouseDown ? "none" : "all 0.3s"
       }}
     >
       <Image
@@ -141,18 +117,10 @@ const ChessPiece: React.FC<PieceProps> = ({
         src={pieceToImage({ color, type })}
         alt={`${color} ${type}`}
         draggable={false}
-        onMouseEnter={() => {
-          if (!mouseDown) setHovering(true);
-        }}
-        onMouseLeave={() => {
-          if (!mouseDown) setHovering(false);
-        }}
-        onMouseDown={() => {
-          setMouseDown(true);
-        }}
-        onMouseUp={() => {
-          setMouseDown(false);
-        }}
+        onMouseEnter={() => !mouseDown && setHovering(true)}
+        onMouseLeave={() => !mouseDown && setHovering(false)}
+        onMouseDown={startDrag}
+        onMouseUp={endDrag}
       />
     </div>
   );
