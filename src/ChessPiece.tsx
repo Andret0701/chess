@@ -50,6 +50,10 @@ const ChessPiece: React.FC<PieceProps> = ({ piece, tileRef, onGrabStart }) => {
   const [sizePosition, setSizePosition] = useState<SizePosition>();
   const [isResizing, setIsResizing] = useState(false);
 
+  useEffect(() => {
+    if (!piece.isAlive || !piece.canMove) setHovering(false);
+  }, [piece.isAlive, piece.canMove]);
+
   const handleResize = useCallback(() => {
     if (tileRef.current) {
       const { width, height, top, left } =
