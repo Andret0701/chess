@@ -54,7 +54,7 @@ const ChessPiece: React.FC<PieceProps> = ({ piece, tileRef, onGrabStart }) => {
     if (!piece.isAlive || !piece.canMove) setHovering(false);
   }, [piece.isAlive, piece.canMove]);
 
-  const handleResize = useCallback(() => {
+  const handleResize = () => {
     if (tileRef.current) {
       const { width, height, top, left } =
         tileRef.current.getBoundingClientRect();
@@ -71,7 +71,23 @@ const ChessPiece: React.FC<PieceProps> = ({ piece, tileRef, onGrabStart }) => {
       setSizePosition({ width, height, top, left });
       setTimeout(() => setIsResizing(false), 100); // Set resizing back to false after a delay
     }
-  }, [tileRef]);
+  };
+
+  useEffect(() => {
+    if (!tileRef.current) return;
+    const { width, height, top, left } =
+      tileRef.current.getBoundingClientRect();
+    if (
+      sizePosition != null &&
+      sizePosition.width === width &&
+      sizePosition.height === height &&
+      sizePosition.top === top &&
+      sizePosition.left === left
+    )
+      return;
+
+    setSizePosition({ width, height, top, left });
+  }, [tileRef.current]);
 
   useEffect(() => {
     handleResize();
@@ -82,7 +98,7 @@ const ChessPiece: React.FC<PieceProps> = ({ piece, tileRef, onGrabStart }) => {
       window.removeEventListener("resize", handleResize);
       window.removeEventListener("mousemove", handleMouseMove);
     };
-  }, [handleResize]);
+  }, []);
 
   const handleMouseMove = useCallback(
     throttle((e) => {

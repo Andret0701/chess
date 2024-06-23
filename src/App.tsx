@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import "./App.css";
 import ChessBoard from "./ChessBoard";
 import Button from "@mui/material/Button";
@@ -23,9 +23,11 @@ function App() {
     console.log("Button clicked");
   };
 
+  const [newGame, setNewGame] = useState<boolean>(false);
+
   return (
     <div className="App">
-      <ChessBoard />
+      <ChessBoard newGame={newGame} />
       <div className="ButtonContainer">
         <Button style={buttonStyle} variant="contained" onClick={handleClick}>
           {"<"}
@@ -33,7 +35,16 @@ function App() {
         <Button style={buttonStyle} variant="contained" onClick={handleClick}>
           {">"}
         </Button>
-        <Button style={buttonStyle} variant="contained" onClick={handleClick}>
+        <Button
+          style={buttonStyle}
+          variant="contained"
+          onClick={() => {
+            setNewGame(true);
+            setTimeout(() => {
+              setNewGame(false);
+            }, 10);
+          }}
+        >
           {"+"}
         </Button>
       </div>

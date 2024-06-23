@@ -1,15 +1,35 @@
 import React, { useEffect, useState, createRef, Fragment } from "react";
-import { FEN_STARTING_POSITION, PieceColor, fenToBoard } from "./ChessUtils";
+import {
+  FEN_STARTING_POSITION,
+  PieceColor,
+  Vector2,
+  fenToBoard
+} from "./ChessUtils";
 import "./ChessBoard.css";
 import { PieceType } from "./ChessUtils";
 import ChessPiece from "./ChessPiece";
 import { PieceData } from "./ChessPiece";
 import PromotionBox from "./PromotionBox";
+import { MoveAction, MoveLog, TakeAction } from "./MoveLog";
+import chessSound from "./ChessSound";
 
-interface ChessBoardProps {}
+interface ChessBoardProps {
+  //prop that canc all newGame function
+  newGame?: boolean;
+}
 
 const ChessBoard: React.FC<ChessBoardProps> = (props) => {
-  const board = fenToBoard(FEN_STARTING_POSITION);
+  const [board, setBoard] = useState(fenToBoard(FEN_STARTING_POSITION));
+
+  const newGame = () => {
+    setBoard(fenToBoard(FEN_STARTING_POSITION));
+  };
+
+  useEffect(() => {
+    if (!props.newGame) return;
+
+    newGame();
+  }, [props.newGame]);
 
   //use the piece data interface
   const [pieces, setPieces] = useState<PieceData[]>([]);
@@ -18,10 +38,8 @@ const ChessBoard: React.FC<ChessBoardProps> = (props) => {
     [number, number] | null
   >(null);
 
-  const [turn, setTurn] = useState<PieceColor>(PieceColor.White);
-
-  const [movedFrom, setMovedFrom] = useState<[number, number] | null>(null);
-  const [movedTo, setMovedTo] = useState<[number, number] | null>(null);
+  const [movedFrom, setMovedFrom] = useState<Vector2 | null>(null);
+  const [movedTo, setMovedTo] = useState<Vector2 | null>(null);
 
   const onGrabStart = (x: number, y: number) => {
     if (draggingPosition !== null) return;
@@ -51,7 +69,9 @@ const ChessBoard: React.FC<ChessBoardProps> = (props) => {
   };
 
   useEffect(() => {
-    const mappedPieces = board
+    //make sure its updated
+
+    const mappedPieces = board.board
       .map((row, rowIndex) =>
         row.map((piece, colIndex) => {
           return {
@@ -62,7 +82,7 @@ const ChessBoard: React.FC<ChessBoardProps> = (props) => {
             isDragging: false,
             x: rowIndex,
             y: colIndex,
-            canMove: piece.color === turn
+            canMove: piece.color === board.turn
           };
         })
       )
@@ -70,7 +90,7 @@ const ChessBoard: React.FC<ChessBoardProps> = (props) => {
       .filter((piece) => piece.type !== PieceType.Empty);
 
     setPieces(mappedPieces);
-  }, []);
+  }, [board]);
 
   const [tileRefs, setTileRefs] = useState<React.RefObject<HTMLDivElement>[][]>(
     []
@@ -80,7 +100,9 @@ const ChessBoard: React.FC<ChessBoardProps> = (props) => {
   >(null);
 
   useEffect(() => {
-    const refs = board.map((row) => row.map(() => createRef<HTMLDivElement>()));
+    const refs = board.board.map((row) =>
+      row.map(() => createRef<HTMLDivElement>())
+    );
     if (refs.length === 0) return;
     if (tileRefs.length === 0) {
       setTileRefs(refs);
@@ -96,7 +118,8 @@ const ChessBoard: React.FC<ChessBoardProps> = (props) => {
 
   const getPieceAtPosition = (position: [number, number]) => {
     return pieces.find(
-      (piece) => piece.x === position[0] && piece.y === position[1]
+      (piece) =>
+        piece.x === position[0] && piece.y === position[1] && piece.isAlive
     );
   };
 
@@ -104,12 +127,13 @@ const ChessBoard: React.FC<ChessBoardProps> = (props) => {
     if (from[0] === to[0] && from[1] === to[1]) return;
 
     const piece = getPieceAtPosition(from);
+    const targetPiece = getPieceAtPosition(to);
     if (!piece) return;
 
     let captured = false;
 
     pieces.forEach((p) => {
-      p.canMove = turn !== p.color;
+      p.canMove = board.turn !== p.color;
       if (p.x === to[0] && p.y === to[1]) {
         if (!p.isAlive) return;
         p.isAlive = false;
@@ -120,20 +144,28 @@ const ChessBoard: React.FC<ChessBoardProps> = (props) => {
       }
     });
 
-    turn === PieceColor.White
-      ? setTurn(PieceColor.Black)
-      : setTurn(PieceColor.White);
+    let moveLog: MoveLog = {
+      actions: []
+    };
 
-    //play the move sound
-    let path = "assets/move.wav";
-    if (captured) path = "assets/capture.wav";
-    const audio = new Audio(path);
-    audio.play();
+    if (captured && targetPiece)
+      moveLog.actions.push({
+        id: targetPiece.id,
+        at: { x: to[0], y: to[1] }
+      } as TakeAction);
 
-    setMovedFrom(from);
-    setMovedTo(to);
+    moveLog.actions.push({
+      id: piece.id,
+      from: { x: from[0], y: from[1] },
+      to: { x: to[0], y: to[1] }
+    } as MoveAction);
 
-    setPieces([...pieces]);
+    board.turn === PieceColor.White
+      ? (board.turn = PieceColor.Black)
+      : (board.turn = PieceColor.White);
+    setBoard(board);
+
+    doMove(moveLog);
   };
 
   useEffect(() => {
@@ -142,12 +174,51 @@ const ChessBoard: React.FC<ChessBoardProps> = (props) => {
     });
   });
 
-  const positionsEqual = (
-    pos1: [number, number] | null,
-    pos2: [number, number] | null
-  ) => {
+  const doMove = (moveLog: MoveLog) => {
+    let moved = false;
+    let captured = false;
+
+    moveLog.actions.forEach((action) => {
+      const piece = pieces.find((p) => p.id === action.id);
+      if (!piece) return;
+      if (action instanceof TakeAction) {
+        piece.isAlive = false;
+        captured = true;
+      } else if (action instanceof MoveAction) {
+        piece.x = action.to.x;
+        piece.y = action.to.y;
+        setMovedFrom(action.from);
+        setMovedTo(action.to);
+
+        moved = true;
+      }
+    });
+    setPieces([...pieces]);
+    chessSound({ moved, captured });
+  };
+
+  const undoMove = (moveLog: MoveLog) => {
+    let moved = false;
+
+    moveLog.actions.reverse().forEach((action) => {
+      const piece = pieces.find((p) => p.id === action.id);
+      if (!piece) return;
+      if (action instanceof TakeAction) {
+        piece.isAlive = true;
+      } else if (action instanceof MoveAction) {
+        piece.x = action.from.x;
+        piece.y = action.from.y;
+        moved = true;
+      }
+    });
+
+    setPieces([...pieces]);
+    chessSound({ moved, captured: false });
+  };
+
+  const positionsEqual = (pos1: Vector2 | null, pos2: Vector2 | null) => {
     if (pos1 === null || pos2 === null) return false;
-    return pos1[0] === pos2[0] && pos1[1] === pos2[1];
+    return pos1.x === pos2.x && pos1.y === pos2.y;
   };
 
   if (tileRefs.length === 0) return null; // Ensure tileRefs is initialized before rendering
@@ -163,7 +234,7 @@ const ChessBoard: React.FC<ChessBoardProps> = (props) => {
           active={draggingPosition !== null}
         />
         <div className="ChessBoard">
-          {board.map((row, rowIndex) => (
+          {board.board.map((row, rowIndex) => (
             <div key={rowIndex} style={{ display: "flex", flex: 1 }}>
               {row.map((piece, colIndex) => (
                 <div
@@ -184,8 +255,8 @@ const ChessBoard: React.FC<ChessBoardProps> = (props) => {
                         : "none",
 
                     backgroundColor:
-                      positionsEqual([rowIndex, colIndex], movedFrom) ||
-                      positionsEqual([rowIndex, colIndex], movedTo)
+                      positionsEqual({ x: rowIndex, y: colIndex }, movedFrom) ||
+                      positionsEqual({ x: rowIndex, y: colIndex }, movedTo)
                         ? (rowIndex + colIndex) % 2 === 0
                           ? "var(--light-moved-color)"
                           : "var(--dark-moved-color)"
