@@ -87,7 +87,7 @@ const ChessPiece: React.FC<PieceProps> = ({ piece, tileRef, onGrabStart }) => {
       return;
 
     setSizePosition({ width, height, top, left });
-  }, [tileRef.current]);
+  }, [tileRef.current, piece]);
 
   useEffect(() => {
     handleResize();

@@ -35,6 +35,9 @@ const ChessBoard: React.FC<ChessBoardProps> = (props) => {
     setMoveLogs(new MoveLogs());
     setMovedFrom({ x: -1, y: -1 });
     setMovedTo({ x: -1, y: -1 });
+    setBlackPromotion(null);
+    setWhitePromotion(null);
+    setPromotionPosition(null);
   };
 
   const nextMove = () => {
@@ -451,12 +454,6 @@ const ChessBoard: React.FC<ChessBoardProps> = (props) => {
           active={blackPromotion !== null}
         />
       </div>
-
-      <h1 style={{ color: "white" }}>
-        {hoveringPosition
-          ? `Hovering over: ${hoveringPosition[0]}, ${hoveringPosition[1]}`
-          : "Not hovering"}
-      </h1>
 
       <div className="ChessPieces">
         {pieces.map((piece) => (
