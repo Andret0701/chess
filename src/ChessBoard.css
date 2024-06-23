@@ -16,7 +16,10 @@
 }
 
 
-
+.ChessBoardContainer {
+    display: flex;
+    flex-direction: row;
+}
 
 .Square {
     width: 12.5%;

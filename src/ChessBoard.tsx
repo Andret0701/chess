@@ -4,6 +4,7 @@ import "./ChessBoard.css";
 import { PieceType } from "./ChessUtils";
 import ChessPiece from "./ChessPiece";
 import { PieceData } from "./ChessPiece";
+import PromotionBox from "./PromotionBox";
 
 interface ChessBoardProps {}
 
@@ -153,69 +154,85 @@ const ChessBoard: React.FC<ChessBoardProps> = (props) => {
 
   return (
     <>
-      <div className="ChessBoard">
-        {board.map((row, rowIndex) => (
-          <div key={rowIndex} style={{ display: "flex", flex: 1 }}>
-            {row.map((piece, colIndex) => (
-              <div
-                key={`${rowIndex}-${colIndex}`}
-                className={`Square`}
-                ref={tileRefs[rowIndex][colIndex]}
-                style={{
-                  //make edge of the square
-                  boxSizing: "border-box",
-                  // Apply border conditionally
-                  border:
-                    hoveringPosition &&
-                    rowIndex === hoveringPosition[0] &&
-                    colIndex === hoveringPosition[1]
-                      ? (rowIndex + colIndex) % 2 === 0
-                        ? "5px solid var(--light-selected-color)"
-                        : "5px solid var(--dark-selected-color)"
-                      : "none",
+      <div className="ChessBoardContainer">
+        <PromotionBox
+          onPromotionSelected={function (piece: PieceType): void {
+            console.log(piece);
+          }}
+          color={PieceColor.White}
+          active={draggingPosition !== null}
+        />
+        <div className="ChessBoard">
+          {board.map((row, rowIndex) => (
+            <div key={rowIndex} style={{ display: "flex", flex: 1 }}>
+              {row.map((piece, colIndex) => (
+                <div
+                  key={`${rowIndex}-${colIndex}`}
+                  className={`Square`}
+                  ref={tileRefs[rowIndex][colIndex]}
+                  style={{
+                    //make edge of the square
+                    boxSizing: "border-box",
+                    // Apply border conditionally
+                    border:
+                      hoveringPosition &&
+                      rowIndex === hoveringPosition[0] &&
+                      colIndex === hoveringPosition[1]
+                        ? (rowIndex + colIndex) % 2 === 0
+                          ? "5px solid var(--light-selected-color)"
+                          : "5px solid var(--dark-selected-color)"
+                        : "none",
 
-                  backgroundColor:
-                    positionsEqual([rowIndex, colIndex], movedFrom) ||
-                    positionsEqual([rowIndex, colIndex], movedTo)
-                      ? (rowIndex + colIndex) % 2 === 0
-                        ? "var(--light-moved-color)"
-                        : "var(--dark-moved-color)"
-                      : (rowIndex + colIndex) % 2 === 0
-                      ? "var(--light-color)"
-                      : "var(--dark-color)"
-                }}
-              >
-                {draggingPosition && (
-                  <div
-                    style={{
-                      zIndex: 9999,
-                      width: "100%",
-                      height: "100%"
-                    }}
-                    onMouseEnter={() => {
-                      if (
-                        hoveringPosition !== null &&
-                        hoveringPosition[0] === rowIndex &&
-                        hoveringPosition[1] === colIndex
-                      )
-                        return;
-                      setHoveringPosition([rowIndex, colIndex]);
-                    }}
-                    onMouseLeave={() => {
-                      if (
-                        hoveringPosition !== null &&
-                        hoveringPosition[0] === rowIndex &&
-                        hoveringPosition[1] === colIndex
-                      )
-                        setHoveringPosition(null);
-                    }}
-                    onMouseUp={() => onGrabEnd(rowIndex, colIndex)}
-                  ></div>
-                )}
-              </div>
-            ))}
-          </div>
-        ))}
+                    backgroundColor:
+                      positionsEqual([rowIndex, colIndex], movedFrom) ||
+                      positionsEqual([rowIndex, colIndex], movedTo)
+                        ? (rowIndex + colIndex) % 2 === 0
+                          ? "var(--light-moved-color)"
+                          : "var(--dark-moved-color)"
+                        : (rowIndex + colIndex) % 2 === 0
+                        ? "var(--light-color)"
+                        : "var(--dark-color)"
+                  }}
+                >
+                  {draggingPosition && (
+                    <div
+                      style={{
+                        zIndex: 9999,
+                        width: "100%",
+                        height: "100%"
+                      }}
+                      onMouseEnter={() => {
+                        if (
+                          hoveringPosition !== null &&
+                          hoveringPosition[0] === rowIndex &&
+                          hoveringPosition[1] === colIndex
+                        )
+                          return;
+                        setHoveringPosition([rowIndex, colIndex]);
+                      }}
+                      onMouseLeave={() => {
+                        if (
+                          hoveringPosition !== null &&
+                          hoveringPosition[0] === rowIndex &&
+                          hoveringPosition[1] === colIndex
+                        )
+                          setHoveringPosition(null);
+                      }}
+                      onMouseUp={() => onGrabEnd(rowIndex, colIndex)}
+                    ></div>
+                  )}
+                </div>
+              ))}
+            </div>
+          ))}
+        </div>
+        <PromotionBox
+          onPromotionSelected={function (piece: PieceType): void {
+            console.log(piece);
+          }}
+          color={PieceColor.Black}
+          active={draggingPosition !== null}
+        />
       </div>
 
       <h1 style={{ color: "white" }}>

@@ -3,7 +3,7 @@ import { Piece, PieceColor, PieceType } from "./ChessUtils"; // Adjust path if n
 import { Image } from "react-bootstrap";
 import { throttle } from "lodash";
 
-const pieceToImage = (piece: Piece) => {
+export const pieceToImage = (piece: Piece) => {
   const basePath = "./assets/";
   const colorPrefix = piece.color === PieceColor.Black ? "b" : "w";
   const typeMap = {
