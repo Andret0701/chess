@@ -33,6 +33,8 @@ const ChessBoard: React.FC<ChessBoardProps> = (props) => {
   const newGame = () => {
     setBoard(fenToBoard(FEN_STARTING_POSITION));
     setMoveLogs(new MoveLogs());
+    setMovedFrom({ x: -1, y: -1 });
+    setMovedTo({ x: -1, y: -1 });
   };
 
   const nextMove = () => {
@@ -173,8 +175,8 @@ const ChessBoard: React.FC<ChessBoardProps> = (props) => {
     moveLog.actions.push({
       type: ActionType.Transform,
       id: id,
-      at: promotionPosition,
-      pieceType: piece
+      transformFrom: PieceType.Pawn,
+      transformTo: piece
     });
 
     moveLogs.addLog(moveLog);
@@ -329,6 +331,8 @@ const ChessBoard: React.FC<ChessBoardProps> = (props) => {
       } else if (action.type === ActionType.MovedUI) {
         setMovedFrom(action.toFrom);
         setMovedTo(action.toTo);
+      } else if (action.type === ActionType.Transform) {
+        piece.type = action.transformTo;
       }
     });
     setPieces([...pieces]);
@@ -351,6 +355,8 @@ const ChessBoard: React.FC<ChessBoardProps> = (props) => {
       } else if (action.type === ActionType.MovedUI) {
         setMovedFrom(action.fromFrom);
         setMovedTo(action.fromTo);
+      } else if (action.type === ActionType.Transform) {
+        piece.type = action.transformFrom;
       }
     });
 

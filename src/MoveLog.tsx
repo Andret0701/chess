@@ -28,8 +28,8 @@ export interface MoveAction extends BaseAction {
 
 export interface TransformAction extends BaseAction {
   type: ActionType.Transform;
-  at: Vector2;
-  pieceType: PieceType;
+  transformFrom: PieceType;
+  transformTo: PieceType;
 }
 
 export interface TakeAction extends BaseAction {
