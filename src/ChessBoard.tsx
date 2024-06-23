@@ -32,6 +32,7 @@ const ChessBoard: React.FC<ChessBoardProps> = (props) => {
 
   const newGame = () => {
     setBoard(fenToBoard(FEN_STARTING_POSITION));
+    setMoveLogs(new MoveLogs());
   };
 
   const nextMove = () => {
