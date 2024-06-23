@@ -10,11 +10,18 @@ import { PieceType } from "./ChessUtils";
 import ChessPiece from "./ChessPiece";
 import { PieceData } from "./ChessPiece";
 import PromotionBox from "./PromotionBox";
-import { MoveAction, MoveLog, TakeAction } from "./MoveLog";
+import {
+  Action,
+  ActionType,
+  MoveAction,
+  MoveLog,
+  MovedUIAction,
+  TakeAction
+} from "./MoveLog";
 import chessSound from "./ChessSound";
+import { Portal } from "@mui/material";
 
 interface ChessBoardProps {
-  //prop that canc all newGame function
   newGame?: boolean;
 }
 
@@ -27,19 +34,18 @@ const ChessBoard: React.FC<ChessBoardProps> = (props) => {
 
   useEffect(() => {
     if (!props.newGame) return;
-
     newGame();
   }, [props.newGame]);
 
-  //use the piece data interface
   const [pieces, setPieces] = useState<PieceData[]>([]);
-  //x,y position of the piece
   const [draggingPosition, setDraggingPosition] = useState<
     [number, number] | null
   >(null);
-
-  const [movedFrom, setMovedFrom] = useState<Vector2 | null>(null);
-  const [movedTo, setMovedTo] = useState<Vector2 | null>(null);
+  const [movedFrom, setMovedFrom] = useState<Vector2>({ x: -1, y: -1 });
+  const [movedTo, setMovedTo] = useState<Vector2>({ x: -1, y: -1 });
+  const [whitePromotion, setWhitePromotion] = useState<MoveLog | null>(null);
+  const [blackPromotion, setBlackPromotion] = useState<MoveLog | null>(null);
+  const [promotionPosition, setPromotionPosition] = useState<Vector2 | null>();
 
   const onGrabStart = (x: number, y: number) => {
     if (draggingPosition !== null) return;
@@ -68,9 +74,77 @@ const ChessBoard: React.FC<ChessBoardProps> = (props) => {
     setHoveringPosition(null);
   };
 
-  useEffect(() => {
-    //make sure its updated
+  const beginPromotion = (at: Vector2, color: PieceColor, moveLog: MoveLog) => {
+    pieces.forEach((p) => {
+      p.canMove = false;
+    });
+    setPieces([...pieces]);
+    if (color === PieceColor.White) setWhitePromotion(moveLog);
+    if (color === PieceColor.Black) setBlackPromotion(moveLog);
+    setPromotionPosition(at);
+  };
 
+  const endPromotion = (piece: PieceType, color: PieceColor) => {
+    if (piece === PieceType.Empty) {
+      if (color === PieceColor.White) {
+        if (whitePromotion) undoMove(whitePromotion);
+        setWhitePromotion(null);
+      }
+      if (color === PieceColor.Black) {
+        if (blackPromotion) undoMove(blackPromotion);
+        setBlackPromotion(null);
+      }
+
+      pieces.forEach((p) => {
+        p.canMove = board.turn === p.color;
+      });
+      setPieces([...pieces]);
+      return;
+    }
+
+    let moveLog: MoveLog | null = null;
+
+    if (color === PieceColor.White) moveLog = whitePromotion;
+    if (color === PieceColor.Black) moveLog = blackPromotion;
+
+    if (
+      !moveLog ||
+      promotionPosition === null ||
+      promotionPosition === undefined
+    )
+      return;
+
+    if (color === PieceColor.White) setWhitePromotion(null);
+    if (color === PieceColor.Black) setBlackPromotion(null);
+
+    let id = "";
+    pieces.forEach((p) => {
+      if (
+        positionsEqual({ x: p.x, y: p.y }, promotionPosition) &&
+        p.color === color &&
+        p.isAlive
+      ) {
+        p.type = piece;
+        id = p.id;
+      }
+      p.canMove = board.turn !== p.color;
+    });
+    setPieces([...pieces]);
+
+    moveLog.actions.push({
+      type: ActionType.Transform,
+      id: id,
+      at: promotionPosition,
+      pieceType: piece
+    });
+
+    board.turn === PieceColor.White
+      ? (board.turn = PieceColor.Black)
+      : (board.turn = PieceColor.White);
+    setBoard(board);
+  };
+
+  useEffect(() => {
     const mappedPieces = board.board
       .map((row, rowIndex) =>
         row.map((piece, colIndex) => {
@@ -151,21 +225,41 @@ const ChessBoard: React.FC<ChessBoardProps> = (props) => {
     if (captured && targetPiece)
       moveLog.actions.push({
         id: targetPiece.id,
+        type: ActionType.Take,
         at: { x: to[0], y: to[1] }
       } as TakeAction);
 
     moveLog.actions.push({
       id: piece.id,
+      type: ActionType.Move,
       from: { x: from[0], y: from[1] },
       to: { x: to[0], y: to[1] }
     } as MoveAction);
+
+    moveLog.actions.push({
+      id: piece.id,
+      type: ActionType.MovedUI,
+      fromFrom: { x: movedFrom.x, y: movedFrom.y },
+      fromTo: { x: movedTo.x, y: movedTo.y },
+      toFrom: { x: from[0], y: from[1] },
+      toTo: { x: to[0], y: to[1] }
+    } as MovedUIAction);
+
+    doMove(moveLog);
+    if (piece.type === PieceType.Pawn) {
+      if (piece.color === PieceColor.White && to[0] === 0) {
+        beginPromotion({ x: to[0], y: to[1] }, PieceColor.White, moveLog);
+        return;
+      } else if (piece.color === PieceColor.Black && to[0] === 7) {
+        beginPromotion({ x: to[0], y: to[1] }, PieceColor.Black, moveLog);
+        return;
+      }
+    }
 
     board.turn === PieceColor.White
       ? (board.turn = PieceColor.Black)
       : (board.turn = PieceColor.White);
     setBoard(board);
-
-    doMove(moveLog);
   };
 
   useEffect(() => {
@@ -181,16 +275,16 @@ const ChessBoard: React.FC<ChessBoardProps> = (props) => {
     moveLog.actions.forEach((action) => {
       const piece = pieces.find((p) => p.id === action.id);
       if (!piece) return;
-      if (action instanceof TakeAction) {
+      if (action.type === ActionType.Take) {
         piece.isAlive = false;
         captured = true;
-      } else if (action instanceof MoveAction) {
+      } else if (action.type === ActionType.Move) {
         piece.x = action.to.x;
         piece.y = action.to.y;
-        setMovedFrom(action.from);
-        setMovedTo(action.to);
-
         moved = true;
+      } else if (action.type === ActionType.MovedUI) {
+        setMovedFrom(action.toFrom);
+        setMovedTo(action.toTo);
       }
     });
     setPieces([...pieces]);
@@ -200,38 +294,44 @@ const ChessBoard: React.FC<ChessBoardProps> = (props) => {
   const undoMove = (moveLog: MoveLog) => {
     let moved = false;
 
-    moveLog.actions.reverse().forEach((action) => {
+    moveLog.actions.reverse().forEach((action: Action) => {
       const piece = pieces.find((p) => p.id === action.id);
       if (!piece) return;
-      if (action instanceof TakeAction) {
+
+      if (action.type === ActionType.Take) {
         piece.isAlive = true;
-      } else if (action instanceof MoveAction) {
+      } else if (action.type === ActionType.Move) {
         piece.x = action.from.x;
         piece.y = action.from.y;
         moved = true;
+      } else if (action.type === ActionType.MovedUI) {
+        setMovedFrom(action.fromFrom);
+        setMovedTo(action.fromTo);
       }
     });
 
-    setPieces([...pieces]);
+    setPieces(pieces);
     chessSound({ moved, captured: false });
   };
 
-  const positionsEqual = (pos1: Vector2 | null, pos2: Vector2 | null) => {
+  const positionsEqual = (
+    pos1: Vector2 | null | undefined,
+    pos2: Vector2 | null | undefined
+  ) => {
     if (pos1 === null || pos2 === null) return false;
+    if (pos1 === undefined || pos2 === undefined) return false;
     return pos1.x === pos2.x && pos1.y === pos2.y;
   };
 
-  if (tileRefs.length === 0) return null; // Ensure tileRefs is initialized before rendering
+  if (tileRefs.length === 0) return null;
 
   return (
     <>
       <div className="ChessBoardContainer">
         <PromotionBox
-          onPromotionSelected={function (piece: PieceType): void {
-            console.log(piece);
-          }}
+          onPromotionSelected={endPromotion}
           color={PieceColor.White}
-          active={draggingPosition !== null}
+          active={whitePromotion !== null}
         />
         <div className="ChessBoard">
           {board.board.map((row, rowIndex) => (
@@ -242,9 +342,7 @@ const ChessBoard: React.FC<ChessBoardProps> = (props) => {
                   className={`Square`}
                   ref={tileRefs[rowIndex][colIndex]}
                   style={{
-                    //make edge of the square
                     boxSizing: "border-box",
-                    // Apply border conditionally
                     border:
                       hoveringPosition &&
                       rowIndex === hoveringPosition[0] &&
@@ -298,11 +396,9 @@ const ChessBoard: React.FC<ChessBoardProps> = (props) => {
           ))}
         </div>
         <PromotionBox
-          onPromotionSelected={function (piece: PieceType): void {
-            console.log(piece);
-          }}
+          onPromotionSelected={endPromotion}
           color={PieceColor.Black}
-          active={draggingPosition !== null}
+          active={blackPromotion !== null}
         />
       </div>
 

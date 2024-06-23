@@ -5,42 +5,70 @@ export interface Vector2 {
   y: number;
 }
 
-export interface Action {
+export enum ActionType {
+  Move = "Move",
+  Transform = "Transform",
+  Take = "Take",
+  Promote = "Promote",
+  EnPassant = "EnPassant",
+  FirstMove = "FirstMove",
+  MovedUI = "MovedUI"
+}
+
+export interface BaseAction {
   id: string;
+  type: ActionType;
 }
 
-export class MoveAction implements Action {
-  id: string = "";
-  from: Vector2 = { x: 0, y: 0 };
-  to: Vector2 = { x: 0, y: 0 };
+export interface MoveAction extends BaseAction {
+  type: ActionType.Move;
+  from: Vector2;
+  to: Vector2;
 }
 
-export class TransformAction implements Action {
-  id: string = "";
-  at: Vector2 = { x: 0, y: 0 };
-  pieceType: PieceType = PieceType.Empty;
+export interface TransformAction extends BaseAction {
+  type: ActionType.Transform;
+  at: Vector2;
+  pieceType: PieceType;
 }
 
-export class TakeAction implements Action {
-  id: string = "";
-  at: Vector2 = { x: 0, y: 0 };
+export interface TakeAction extends BaseAction {
+  type: ActionType.Take;
+  at: Vector2;
 }
 
-export class PromoteAction implements Action {
-  id: string = "";
-  at: Vector2 = { x: 0, y: 0 };
-  pieceType: PieceType = PieceType.Empty;
+export interface PromoteAction extends BaseAction {
+  type: ActionType.Promote;
+  at: Vector2;
+  pieceType: PieceType;
 }
 
-export class EnPassantAction implements Action {
-  id: string = "";
-  at: Vector2 = { x: 0, y: 0 };
+export interface EnPassantAction extends BaseAction {
+  type: ActionType.EnPassant;
+  at: Vector2;
 }
 
-export class FirstMoveAction implements Action {
-  id: string = "";
-  at: Vector2 = { x: 0, y: 0 };
+export interface FirstMoveAction extends BaseAction {
+  type: ActionType.FirstMove;
+  at: Vector2;
 }
+
+export interface MovedUIAction extends BaseAction {
+  type: ActionType.MovedUI;
+  fromFrom: Vector2;
+  fromTo: Vector2;
+  toFrom: Vector2;
+  toTo: Vector2;
+}
+
+export type Action =
+  | MoveAction
+  | TransformAction
+  | TakeAction
+  | PromoteAction
+  | EnPassantAction
+  | FirstMoveAction
+  | MovedUIAction;
 
 export interface MoveLog {
   actions: Action[];
@@ -49,6 +77,7 @@ export interface MoveLog {
 const moveLogs = {
   logs: [] as MoveLog[],
   offset: 0 as number,
+
   addAction(action: Action) {
     if (this.logs.length === 0) {
       this.logs.push({ actions: [action] });
@@ -56,6 +85,7 @@ const moveLogs = {
       this.logs[this.logs.length - 1].actions.push(action);
     }
   },
+
   addLog(log: MoveLog) {
     this.logs.push(log);
   },

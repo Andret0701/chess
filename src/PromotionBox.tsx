@@ -7,7 +7,7 @@ import { Image } from "react-bootstrap";
 type PromotionBoxProps = {
   color: PieceColor;
   active: boolean;
-  onPromotionSelected: (piece: PieceType) => void;
+  onPromotionSelected: (piece: PieceType, color: PieceColor) => void;
 };
 
 const PromotionBox: React.FC<PromotionBoxProps> = ({
@@ -16,7 +16,7 @@ const PromotionBox: React.FC<PromotionBoxProps> = ({
   onPromotionSelected
 }) => {
   const handlePromotionClick = (piece: PieceType) => {
-    onPromotionSelected(piece);
+    onPromotionSelected(piece, color);
   };
 
   const buttonStyle = {
@@ -102,7 +102,7 @@ const PromotionBox: React.FC<PromotionBoxProps> = ({
       </Button>
       <Button
         variant="contained"
-        onClick={() => handlePromotionClick(PieceType.Knight)}
+        onClick={() => handlePromotionClick(PieceType.Empty)}
         style={{
           ...buttonStyle,
           textAlign: "center",
