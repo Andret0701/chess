@@ -10,7 +10,7 @@ import { PieceType } from "./ChessUtils";
 import ChessPiece from "./ChessPiece";
 import { PieceData } from "./ChessPiece";
 import PromotionBox from "./PromotionBox";
-import {
+import MoveLogs, {
   Action,
   ActionType,
   MoveAction,
@@ -23,6 +23,8 @@ import { Portal } from "@mui/material";
 
 interface ChessBoardProps {
   newGame?: boolean;
+  nextMove?: boolean;
+  previousMove?: boolean;
 }
 
 const ChessBoard: React.FC<ChessBoardProps> = (props) => {
@@ -32,10 +34,44 @@ const ChessBoard: React.FC<ChessBoardProps> = (props) => {
     setBoard(fenToBoard(FEN_STARTING_POSITION));
   };
 
+  const nextMove = () => {
+    const move = moveLogs.nextLog();
+    if (!move) return;
+    board.turn =
+      board.turn === PieceColor.White ? PieceColor.Black : PieceColor.White;
+    setBoard(board);
+    doMove(move);
+  };
+
+  const previousMove = () => {
+    const move = moveLogs.previousLog();
+    if (!move) return;
+    board.turn =
+      board.turn === PieceColor.White ? PieceColor.Black : PieceColor.White;
+    undoMove(move);
+  };
+
+  useEffect(() => {
+    pieces.forEach((p) => {
+      p.canMove = board.turn === p.color;
+    });
+    setPieces([...pieces]);
+  }, [board.turn]);
+
   useEffect(() => {
     if (!props.newGame) return;
     newGame();
   }, [props.newGame]);
+
+  useEffect(() => {
+    if (!props.nextMove) return;
+    nextMove();
+  }, [props.nextMove]);
+
+  useEffect(() => {
+    if (!props.previousMove) return;
+    previousMove();
+  }, [props.previousMove]);
 
   const [pieces, setPieces] = useState<PieceData[]>([]);
   const [draggingPosition, setDraggingPosition] = useState<
@@ -46,6 +82,8 @@ const ChessBoard: React.FC<ChessBoardProps> = (props) => {
   const [whitePromotion, setWhitePromotion] = useState<MoveLog | null>(null);
   const [blackPromotion, setBlackPromotion] = useState<MoveLog | null>(null);
   const [promotionPosition, setPromotionPosition] = useState<Vector2 | null>();
+
+  const [moveLogs, setMoveLogs] = useState<MoveLogs>(new MoveLogs());
 
   const onGrabStart = (x: number, y: number) => {
     if (draggingPosition !== null) return;
@@ -137,6 +175,9 @@ const ChessBoard: React.FC<ChessBoardProps> = (props) => {
       at: promotionPosition,
       pieceType: piece
     });
+
+    moveLogs.addLog(moveLog);
+    setMoveLogs(moveLogs);
 
     board.turn === PieceColor.White
       ? (board.turn = PieceColor.Black)
@@ -260,6 +301,8 @@ const ChessBoard: React.FC<ChessBoardProps> = (props) => {
       ? (board.turn = PieceColor.Black)
       : (board.turn = PieceColor.White);
     setBoard(board);
+    moveLogs.addLog(moveLog);
+    setMoveLogs(moveLogs);
   };
 
   useEffect(() => {

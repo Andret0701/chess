@@ -19,20 +19,41 @@ function App() {
     fontWeight: "bold",
     fontSize: "100%"
   };
-  const handleClick = () => {
-    console.log("Button clicked");
-  };
 
   const [newGame, setNewGame] = useState<boolean>(false);
+  const [nextMove, setNextMove] = useState<boolean>(false);
+  const [previousMove, setPreviousMove] = useState<boolean>(false);
 
   return (
     <div className="App">
-      <ChessBoard newGame={newGame} />
+      <ChessBoard
+        newGame={newGame}
+        nextMove={nextMove}
+        previousMove={previousMove}
+      />
       <div className="ButtonContainer">
-        <Button style={buttonStyle} variant="contained" onClick={handleClick}>
+        <Button
+          style={buttonStyle}
+          variant="contained"
+          onClick={() => {
+            setPreviousMove(true);
+            setTimeout(() => {
+              setPreviousMove(false);
+            }, 10);
+          }}
+        >
           {"<"}
         </Button>
-        <Button style={buttonStyle} variant="contained" onClick={handleClick}>
+        <Button
+          style={buttonStyle}
+          variant="contained"
+          onClick={() => {
+            setNextMove(true);
+            setTimeout(() => {
+              setNextMove(false);
+            }, 10);
+          }}
+        >
           {">"}
         </Button>
         <Button

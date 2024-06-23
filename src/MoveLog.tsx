@@ -74,33 +74,30 @@ export interface MoveLog {
   actions: Action[];
 }
 
-const moveLogs = {
-  logs: [] as MoveLog[],
-  offset: 0 as number,
-
-  addAction(action: Action) {
-    if (this.logs.length === 0) {
-      this.logs.push({ actions: [action] });
-    } else {
-      this.logs[this.logs.length - 1].actions.push(action);
-    }
-  },
+class MoveLogs {
+  logs: MoveLog[] = [];
+  offset: number = 0;
 
   addLog(log: MoveLog) {
+    if (this.offset < this.logs.length)
+      this.logs = this.logs.slice(0, this.offset);
+
     this.logs.push(log);
-  },
+    this.offset = this.logs.length;
+  }
 
   nextLog() {
-    if (this.offset < this.logs.length - 1) {
-      this.offset++;
-    }
-    return this.logs[this.offset];
-  },
+    if (this.offset < this.logs.length) this.offset++;
+    else return null;
+    return this.logs[this.offset - 1];
+  }
 
   previousLog() {
-    if (this.offset > 0) {
-      this.offset--;
-    }
+    if (this.offset > 0) this.offset--;
+    else return null;
+
     return this.logs[this.offset];
   }
-};
+}
+
+export default MoveLogs;
