@@ -292,6 +292,35 @@ const ChessBoard: React.FC<ChessBoardProps> = (props) => {
       toTo: { x: to[0], y: to[1] }
     } as MovedUIAction);
 
+
+    //check for castling
+    if (piece.type === PieceType.King) {
+      if (from[1] - to[1] === 2) {
+        const rook = getPieceAtPosition([from[0], 0]);
+        if (rook && rook.type === PieceType.Rook) {
+          rook.y = 3;
+          moveLog.actions.push({
+            id: rook.id,
+            type: ActionType.Move,
+            from: { x: from[0], y: 0 },
+            to: { x: from[0], y: 3 }
+          } as MoveAction);
+        }
+      }
+      if (from[1] - to[1] === -2) {
+        const rook = getPieceAtPosition([from[0], 7]);
+        if (rook && rook.type === PieceType.Rook) {
+          rook.y = 5;
+          moveLog.actions.push({
+            id: rook.id,
+            type: ActionType.Move,
+            from: { x: from[0], y: 7 },
+            to: { x: from[0], y: 5 }
+          } as MoveAction);
+        }
+      }
+    }
+
     doMove(moveLog);
     if (piece.type === PieceType.Pawn) {
       if (piece.color === PieceColor.White && to[0] === 0) {

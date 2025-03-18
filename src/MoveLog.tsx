@@ -5,13 +5,14 @@ export interface Vector2 {
   y: number;
 }
 
+
 export enum ActionType {
   Move = "Move",
   Transform = "Transform",
   Take = "Take",
   Promote = "Promote",
   EnPassant = "EnPassant",
-  FirstMove = "FirstMove",
+  CastleRights = "CastleRights",
   MovedUI = "MovedUI"
 }
 
@@ -48,8 +49,8 @@ export interface EnPassantAction extends BaseAction {
   at: Vector2;
 }
 
-export interface FirstMoveAction extends BaseAction {
-  type: ActionType.FirstMove;
+export interface CastleRightsAction extends BaseAction {
+  type: ActionType.CastleRights;
   at: Vector2;
 }
 
@@ -67,7 +68,7 @@ export type Action =
   | TakeAction
   | PromoteAction
   | EnPassantAction
-  | FirstMoveAction
+  | CastleRightsAction
   | MovedUIAction;
 
 export interface MoveLog {

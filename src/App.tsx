@@ -2,7 +2,10 @@ import React, { useState } from "react";
 import "./App.css";
 import ChessBoard from "./ChessBoard";
 import Button from "@mui/material/Button";
-
+import { Image } from "react-bootstrap";
+import PlayerBotOptionBox from "./PlayerBotOptionBox";
+import { PieceColor } from "./ChessUtils";
+import BeginGameMenu from "./BeginGameMenu";
 function App() {
   const buttonStyle = {
     //     background-color: #262522;
@@ -23,9 +26,17 @@ function App() {
   const [newGame, setNewGame] = useState<boolean>(false);
   const [nextMove, setNextMove] = useState<boolean>(false);
   const [previousMove, setPreviousMove] = useState<boolean>(false);
+  const [inMenu, setInMenu] = useState<boolean>(true);
 
   return (
     <div className="App">
+      {inMenu && (
+        <BeginGameMenu
+          onBegin={function (): void {
+            setInMenu(false);
+          }}
+        />
+      )}
       <ChessBoard
         newGame={newGame}
         nextMove={nextMove}
@@ -61,6 +72,7 @@ function App() {
           variant="contained"
           onClick={() => {
             setNewGame(true);
+            setInMenu(true);
             setTimeout(() => {
               setNewGame(false);
             }, 10);
