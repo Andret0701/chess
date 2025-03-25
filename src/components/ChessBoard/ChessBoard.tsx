@@ -4,12 +4,12 @@ import {
   PieceColor,
   Vector2,
   fenToBoard
-} from "./ChessUtils";
+} from "../../ChessUtils";
 import "./ChessBoard.css";
-import { PieceType } from "./ChessUtils";
-import ChessPiece from "./components/ChessPiece/ChessPiece";
-import { PieceData } from "./components/ChessPiece/ChessPiece";
-import PromotionBox from "./PromotionBox";
+import { PieceType } from "../../ChessUtils";
+import ChessPiece from "../ChessPiece/ChessPiece";
+import { PieceData } from "../ChessPiece/ChessPiece";
+import PromotionBox from "../../PromotionBox";
 import MoveLogs, {
   Action,
   ActionType,
@@ -17,8 +17,8 @@ import MoveLogs, {
   MoveLog,
   MovedUIAction,
   TakeAction
-} from "./MoveLog";
-import chessSound from "./assets/chessSound";
+} from "../../MoveLog";
+import chessSound from "../../assets/chessSound";
 import { Portal } from "@mui/material";
 
 interface ChessBoardProps {

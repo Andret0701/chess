@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import "./App.css";
-import ChessBoard from "./ChessBoard";
+import ChessBoard from "./components/ChessBoard";
 import Button from "@mui/material/Button";
 import { Image } from "react-bootstrap";
 import PlayerBotOptionBox from "./PlayerBotOptionBox";
