@@ -1,7 +1,6 @@
 import React, { useState } from "react";
 import Button from "@mui/material/Button";
-import { PieceColor, PieceType } from "./ChessUtils";
-import { pieceToImage } from "./ChessPiece";
+import { PieceColor } from "./ChessUtils";
 import { Image } from "react-bootstrap";
 
 type PlayerBotOptionBoxProps = {
@@ -9,14 +8,14 @@ type PlayerBotOptionBoxProps = {
 };
 
 const PlayerBotOptionBox: React.FC<PlayerBotOptionBoxProps> = ({ color }) => {
-  const [isBot, setBot] = useState(color == PieceColor.Black);
+  const [isBot, setBot] = useState(color === PieceColor.Black);
 
   return (
     <div>
       <Image
         draggable={false}
         src={
-          color == PieceColor.White
+          color === PieceColor.White
             ? `${process.env.PUBLIC_URL}/assets/wk.png`
             : `${process.env.PUBLIC_URL}/assets/bk.png`
         }
@@ -55,7 +54,7 @@ const PlayerBotOptionBox: React.FC<PlayerBotOptionBoxProps> = ({ color }) => {
         >
           <Image
             src={
-              color == PieceColor.White
+              color === PieceColor.White
                 ? `${process.env.PUBLIC_URL}/assets/human1.svg`
                 : `${process.env.PUBLIC_URL}/assets/human2.svg`
             }

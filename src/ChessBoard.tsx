@@ -7,8 +7,8 @@ import {
 } from "./ChessUtils";
 import "./ChessBoard.css";
 import { PieceType } from "./ChessUtils";
-import ChessPiece from "./ChessPiece";
-import { PieceData } from "./ChessPiece";
+import ChessPiece from "./components/ChessPiece/ChessPiece";
+import { PieceData } from "./components/ChessPiece/ChessPiece";
 import PromotionBox from "./PromotionBox";
 import MoveLogs, {
   Action,
@@ -291,7 +291,6 @@ const ChessBoard: React.FC<ChessBoardProps> = (props) => {
       toFrom: { x: from[0], y: from[1] },
       toTo: { x: to[0], y: to[1] }
     } as MovedUIAction);
-
 
     //check for castling
     if (piece.type === PieceType.King) {

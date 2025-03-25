@@ -16,7 +16,8 @@
 }
 
 
-.ChessBoardContainer {
+.ChessBoardContainer
+ {
     display: flex;
     flex-direction: row;
 }

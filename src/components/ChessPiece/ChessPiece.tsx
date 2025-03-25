@@ -1,24 +1,10 @@
 import React, { useState, useEffect, useRef, useCallback } from "react";
-import { Piece, PieceColor, PieceType } from "./ChessUtils"; // Adjust path if necessary
+import { Piece, PieceColor, PieceType } from "../../ChessUtils"; // Adjust path if necessary
 import { Image } from "react-bootstrap";
 import { throttle } from "lodash";
-
-export const pieceToImage = (piece: Piece) => {
-  const basePath = `${process.env.PUBLIC_URL}/assets/`;
-  const colorPrefix = piece.color === PieceColor.Black ? "b" : "w";
-  const typeMap = {
-    [PieceType.Pawn]: "p",
-    [PieceType.Rook]: "r",
-    [PieceType.Knight]: "n",
-    [PieceType.Bishop]: "b",
-    [PieceType.Queen]: "q",
-    [PieceType.King]: "k"
-  };
-
-  return piece.type !== PieceType.Empty
-    ? `${basePath}${colorPrefix}${typeMap[piece.type]}.png`
-    : "";
-};
+import { pieceToImage } from "../../assets/pieceToImage";
+import { useMousePosition } from "../../hooks/useMousePosition";
+import { useSizePosition } from "../../hooks/useSizePosition";
 
 export interface PieceData {
   id: string;
@@ -46,66 +32,13 @@ interface SizePosition {
 
 const ChessPiece: React.FC<PieceProps> = ({ piece, tileRef, onGrabStart }) => {
   const [isHovering, setHovering] = useState(false);
-  const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
-  const [sizePosition, setSizePosition] = useState<SizePosition>();
+  const mousePosition = useMousePosition();
+  const sizePosition = useSizePosition(tileRef);
   const [isResizing, setIsResizing] = useState(false);
 
   useEffect(() => {
     if (!piece.isAlive || !piece.canMove) setHovering(false);
   }, [piece.isAlive, piece.canMove]);
-
-  const handleResize = () => {
-    if (tileRef.current) {
-      const { width, height, top, left } =
-        tileRef.current.getBoundingClientRect();
-      if (
-        sizePosition != null &&
-        sizePosition.width === width &&
-        sizePosition.height === height &&
-        sizePosition.top === top &&
-        sizePosition.left === left
-      )
-        return;
-
-      setIsResizing(true);
-      setSizePosition({ width, height, top, left });
-      setTimeout(() => setIsResizing(false), 100); // Set resizing back to false after a delay
-    }
-  };
-
-  useEffect(() => {
-    if (!tileRef.current) return;
-    const { width, height, top, left } =
-      tileRef.current.getBoundingClientRect();
-    if (
-      sizePosition != null &&
-      sizePosition.width === width &&
-      sizePosition.height === height &&
-      sizePosition.top === top &&
-      sizePosition.left === left
-    )
-      return;
-
-    setSizePosition({ width, height, top, left });
-  }, [tileRef.current, piece]);
-
-  useEffect(() => {
-    handleResize();
-    window.addEventListener("resize", handleResize);
-    window.addEventListener("mousemove", handleMouseMove);
-
-    return () => {
-      window.removeEventListener("resize", handleResize);
-      window.removeEventListener("mousemove", handleMouseMove);
-    };
-  }, []);
-
-  const handleMouseMove = useCallback(
-    throttle((e) => {
-      setMousePosition({ x: e.clientX, y: e.clientY });
-    }, 16), // Adjust the throttle rate as needed
-    []
-  );
 
   const startDrag = () => {
     if (!piece.canMove) return;

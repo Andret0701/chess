@@ -1,8 +1,8 @@
 import React from "react";
 import Button from "@mui/material/Button";
 import { PieceColor, PieceType } from "./ChessUtils";
-import { pieceToImage } from "./ChessPiece";
 import { Image } from "react-bootstrap";
+import { pieceToImage } from "./assets/pieceToImage";
 
 type PromotionBoxProps = {
   color: PieceColor;
