@@ -6,6 +6,7 @@ import { Image } from "react-bootstrap";
 import PlayerBotOptionBox from "./PlayerBotOptionBox";
 import { PieceColor } from "./ChessUtils";
 import BeginGameMenu from "./BeginGameMenu";
+import LichessElo from "./LichessElo";
 function App() {
   const buttonStyle = {
     //     background-color: #262522;
@@ -81,6 +82,7 @@ function App() {
           {"+"}
         </Button>
       </div>
+      {/* <LichessElo username="Andobot" /> */}
     </div>
   );
 }
