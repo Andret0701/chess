@@ -18,7 +18,7 @@ import MoveLogs, {
   MovedUIAction,
   TakeAction
 } from "./MoveLog";
-import chessSound from "./ChessSound";
+import chessSound from "./assets/chessSound";
 import { Portal } from "@mui/material";
 
 interface ChessBoardProps {
