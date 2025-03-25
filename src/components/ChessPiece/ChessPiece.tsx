@@ -34,7 +34,6 @@ const ChessPiece: React.FC<PieceProps> = ({ piece, tileRef, onGrabStart }) => {
   const [isHovering, setHovering] = useState(false);
   const mousePosition = useMousePosition();
   const sizePosition = useSizePosition(tileRef);
-  const [isResizing, setIsResizing] = useState(false);
 
   useEffect(() => {
     if (!piece.isAlive || !piece.canMove) setHovering(false);
@@ -65,11 +64,7 @@ const ChessPiece: React.FC<PieceProps> = ({ piece, tileRef, onGrabStart }) => {
         userSelect: "none",
         zIndex: piece.isAlive ? (isHovering && piece.isDragging ? 3 : 2) : 1,
         position: "absolute",
-        transition: isResizing
-          ? "none"
-          : piece.isDragging
-          ? "all 0.05s"
-          : "all 0.3s",
+        transition: piece.isDragging ? "all 0.05s" : "all 0.3s",
         //make it not hitting mouse if not alive
         pointerEvents: "none"
       }}
