@@ -8,11 +8,11 @@ function chessSound({
   captured: boolean;
 }) {
   if (captured) {
-    playSound("assets/capture.wav");
+    playSound(`${process.env.PUBLIC_URL}/assets/capture.wav`);
     return;
   }
   if (moved) {
-    playSound("assets/move.wav");
+    playSound(`${process.env.PUBLIC_URL}/assets/move.wav`);
     return;
   }
 }

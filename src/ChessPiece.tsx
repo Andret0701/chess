@@ -4,7 +4,7 @@ import { Image } from "react-bootstrap";
 import { throttle } from "lodash";
 
 export const pieceToImage = (piece: Piece) => {
-  const basePath = "./assets/";
+  const basePath = `${process.env.PUBLIC_URL}/assets/`;
   const colorPrefix = piece.color === PieceColor.Black ? "b" : "w";
   const typeMap = {
     [PieceType.Pawn]: "p",

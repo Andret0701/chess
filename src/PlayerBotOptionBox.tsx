@@ -15,7 +15,11 @@ const PlayerBotOptionBox: React.FC<PlayerBotOptionBoxProps> = ({ color }) => {
     <div>
       <Image
         draggable={false}
-        src={color == PieceColor.White ? "assets/wk.png" : "assets/bk.png"}
+        src={
+          color == PieceColor.White
+            ? `${process.env.PUBLIC_URL}/assets/wk.png`
+            : `${process.env.PUBLIC_URL}/assets/bk.png`
+        }
         style={{
           width: "10vh",
           height: "10vh",
@@ -52,8 +56,8 @@ const PlayerBotOptionBox: React.FC<PlayerBotOptionBoxProps> = ({ color }) => {
           <Image
             src={
               color == PieceColor.White
-                ? "assets/human1.svg"
-                : "assets/human2.svg"
+                ? `${process.env.PUBLIC_URL}/assets/human1.svg`
+                : `${process.env.PUBLIC_URL}/assets/human2.svg`
             }
             style={{
               filter: !isBot ? "none" : "brightness(60%)",
@@ -78,7 +82,7 @@ const PlayerBotOptionBox: React.FC<PlayerBotOptionBoxProps> = ({ color }) => {
           onClick={() => setBot(true)}
         >
           <Image
-            src={"assets/bot.svg"}
+            src={`${process.env.PUBLIC_URL}/assets/bot.svg`}
             style={{
               filter: isBot ? "none" : "brightness(60%)",
               width: "10vh",
