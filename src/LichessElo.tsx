@@ -1,3 +1,4 @@
+import { stat } from "fs";
 import React, { useState, useEffect } from "react";
 
 interface LichessEloProps {
@@ -15,8 +16,8 @@ const LichessElo = ({ username }: LichessEloProps) => {
       .then((data) => {
         if (data.perfs) {
           console.log(data.perfs);
-          const filteredRatings = Object.entries(data.perfs)
-            .filter(([_, stats]: any) => !stats.prov) // Remove provisional ratings
+          const filteredRatings = Object.entries(data.perfs) //if number of games is 0
+            .filter(([_, stats]: any) => stats.games > 0)
             .map(([mode, stats]: any) => ({
               mode,
               rating: stats.rating,
@@ -48,7 +49,8 @@ const LichessElo = ({ username }: LichessEloProps) => {
         <ul style={listStyle}>
           {ratings.map(({ mode, rating, prog }) => (
             <li key={mode} style={listItemStyle}>
-              <strong>{mode}:</strong> {rating}{" "}
+              <strong>{mode.charAt(0).toUpperCase() + mode.slice(1)}:</strong>{" "}
+              {rating}{" "}
               <span style={{ color: prog >= 0 ? "green" : "red" }}>
                 ({prog >= 0 ? "+" : ""}
                 {prog})
